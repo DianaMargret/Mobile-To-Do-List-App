@@ -50,6 +50,7 @@ class TodoApp(App):
     def build(self):
         self.root = BoxLayout(orientation='vertical', padding=10, spacing=10)
         
+        # Input area
         input_layout = BoxLayout(orientation='horizontal', size_hint_y=0.1)
         self.task_input = TextInput(hint_text='Enter a task...', multiline=False)
         add_button = Button(text='Add', size_hint_x=0.3)
@@ -58,13 +59,22 @@ class TodoApp(App):
         input_layout.add_widget(self.task_input)
         input_layout.add_widget(add_button)
         
+        # Control buttons (new section for Delete Selected)
+        control_layout = BoxLayout(orientation='horizontal', size_hint_y=0.1)
+        delete_selected_btn = Button(text='Delete Selected', size_hint_x=1.0)
+        delete_selected_btn.bind(on_press=self.delete_selected_tasks)
+        control_layout.add_widget(delete_selected_btn)
+        
+        # Task list
         self.task_list = BoxLayout(orientation='vertical', size_hint_y=None)
         self.task_list.bind(minimum_height=self.task_list.setter('height'))
         
         scroll_view = ScrollView()
         scroll_view.add_widget(self.task_list)
         
+        # Add all components to root
         self.root.add_widget(input_layout)
+        self.root.add_widget(control_layout)
         self.root.add_widget(scroll_view)
         
         self.load_tasks()  # Load tasks on startup
@@ -76,6 +86,13 @@ class TodoApp(App):
             task = TaskWidget(self.task_input.text)
             self.task_list.add_widget(task)
             self.task_input.text = ''
+            self.save_tasks()
+
+    def delete_selected_tasks(self, instance):
+        tasks_to_remove = [task for task in self.task_list.children if task.checkbox.active]
+        for task in tasks_to_remove:
+            self.task_list.remove_widget(task)
+        if tasks_to_remove:  # Save only if something was deleted
             self.save_tasks()
 
     def save_tasks(self):
